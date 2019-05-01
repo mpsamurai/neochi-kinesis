@@ -9,4 +9,4 @@ ENTRYPOINT ["entrypoint.sh"]
 WORKDIR /code
 COPY ./src /code
 
-CMD ["python", "kinesis/kinesis.py"]
+CMD ["python3", "kinesis/kinesis.py"]
