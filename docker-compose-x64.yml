@@ -11,5 +11,7 @@ services:
     volumes:
       - ./src:/code
       - ../neochi-core/src/neochi:/code/neochi
+    environment:
+      - PYTHONUNBUFFERED=1
     depends_on:
       - redis
