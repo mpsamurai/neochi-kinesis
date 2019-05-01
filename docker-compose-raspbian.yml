@@ -1,0 +1,15 @@
+version: "3"
+services:
+  redis:
+    image: arm32v6/redis
+    ports:
+      - 6379:6379
+  kinesis:
+    build:
+      context: .
+      dockerfile: ./Dockerfile-raspbian
+    volumes:
+      - ./src:/code
+      - ../neochi-core/src/neochi:/code/neochi
+    depends_on:
+      - redis
