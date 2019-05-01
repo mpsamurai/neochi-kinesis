@@ -40,7 +40,7 @@ class BaseController:
         self._is_completed = False
 
     def _response_notification_callback(self, value, channel):
-        print('complete', channel)
+        print('complete', channel, value)
         self._is_completed = True
 
     def execute(self, parameters):
@@ -73,10 +73,10 @@ class Kinesis:
         try:
             plan_id = self._action_plan[channel]
             plan_detail = self._action_plan_detail[plan_id]
-            print('take action')
+            print('take action', channel)
             for action in plan_detail['actions']:
                 self._controllers[action['type']].execute(action['parameters'])
-            print('complete action')
+            print('complete action', channel)
         except KeyError:
             print('invalid action')
 
@@ -84,9 +84,16 @@ class Kinesis:
         self._detector_notifications.append(notification)
         notification.subscribe(self._detector_notification_callback)
 
+    def waits_subscriptin_end(self):
+        for notification in self._detector_notifications:
+            notification.wait_subscription_end()
+
 
 if __name__ == '__main__':
-    action_plan = {'detected_sleep': 0}
+    action_plan = {
+        'detected_sleep': 0,
+        'detected_clap': 1
+    }
     action_plan_detail = {
         "actionSets": [
             {
@@ -94,6 +101,13 @@ if __name__ == '__main__':
                 'name': '寝落ち検出',
                 'actions': [
                     {'type': 'ir', 'parameters': {'id': 0}},
+
+                ]
+            },
+            {
+                'id': 1,
+                'name': '拍手検出',
+                'actions': [
                     {'type': 'ir', 'parameters': {'id': 1}},
                 ]
             }
@@ -102,25 +116,30 @@ if __name__ == '__main__':
 
     server = redis.StrictRedis('redis')
     detected_sleep = brain_notification.DetectedSleep(server)
+    detected_clap = clap_detector_notification.DetectedClap(server)
 
     kinesis = Kinesis(server)
     kinesis.add_detector_notification(detected_sleep)
+    kinesis.add_detector_notification(detected_clap)
 
     kinesis._action_plan.value = action_plan
     kinesis._action_plan_detail.value = action_plan_detail
 
-    def callback(value, channel):
-        print('start', channel, value)
-    kinesis._controllers['ir']._request_notification.subscribe(callback)
+    kinesis.waits_subscriptin_end()
 
-    time.sleep(3)
-
-    detected_sleep.notify()
-
-    time.sleep(3)
-
-    kinesis._controllers['ir']._response_notification.notify()
-
-    time.sleep(3)
-
-    kinesis._controllers['ir']._response_notification.notify()
+    # def callback(value, channel):
+    #     print('start', channel, value)
+    # kinesis._controllers['ir']._request_notification.subscribe(callback)
+    #
+    # time.sleep(3)
+    #
+    # detected_sleep.notify()
+    # detected_clap.notify()
+    #
+    # time.sleep(3)
+    #
+    # kinesis._controllers['ir']._response_notification.notify()
+    #
+    # time.sleep(3)
+    #
+    # kinesis._controllers['ir']._response_notification.notify()
