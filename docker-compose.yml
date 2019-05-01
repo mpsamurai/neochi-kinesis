@@ -6,3 +6,8 @@ services:
       - 6379:6379
   kinesis:
     build: .
+    volumes:
+      - ./src:/code
+      - ../neochi-core/src/neochi:/code/neochi
+    depends_on:
+      - redis
