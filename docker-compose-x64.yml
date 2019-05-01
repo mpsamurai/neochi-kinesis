@@ -5,7 +5,9 @@ services:
     ports:
       - 6379:6379
   kinesis:
-    build: .
+    build:
+      context: .
+      dockerfile: ./Dockerfile-x64
     volumes:
       - ./src:/code
       - ../neochi-core/src/neochi:/code/neochi
