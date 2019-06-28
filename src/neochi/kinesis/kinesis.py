@@ -45,7 +45,7 @@ class BaseController:
 
     def execute(self, parameters):
         self._is_completed = False
-        self._request_notification.value = parameters
+        self._request_notification.value = parameters['id']
         while not self._is_completed:
             time.sleep(0.1)
 
@@ -114,7 +114,7 @@ if __name__ == '__main__':
         ]
     }
 
-    server = redis.StrictRedis('redis')
+    server = redis.StrictRedis('localhost')
     detected_sleep = brain_notification.DetectedSleep(server)
     detected_clap = clap_detector_notification.DetectedClap(server)
 
